@@ -53,6 +53,12 @@ For the leader election examples in this package this node is called <code>/elec
 </tr>
 </tr>
 <tr>
+<td align="left"><p>Package</p></td>
+<td align="left"><p>See Library.
+</p></td>
+</tr>
+</tr>
+<tr>
 <td align="left"><p>ZK</p></td>
 <td align="left"><p>Zookeeper.
 </p></td>
@@ -110,7 +116,7 @@ Leadership election is inherently an asynchronous process. For candidates that w
 
 Followers of an election can wait an indeterminate amount of time to become the leader of an election. If a follower becomes a leader they will be notified. In some cases the election may end before a follower can become a leader. Like leaders, followers can receive errors from the election. Like leaders, they should resign from the election in this case.
 
-Finally, and election can be unilaterally ended by any actor in the application. As with errors, this results in a status notification to all candidates, including the leader. Candidates are expected to resign from the election in this case as well.
+Finally, an election can be unilaterally ended by any actor in the application. As with errors, this results in a status notification to all candidates, including the leader. Candidates are expected to resign from the election in this case as well.
 
 Given that leadership election is an asynchronous process clients should start the election as a goroutine as shown below. All events pertaining to the status of an election are communicated via channels. So the typical pattern is for a client to monitor the election status in a `for/select` loop as shown below.
 
