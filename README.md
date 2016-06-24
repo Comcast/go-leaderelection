@@ -179,4 +179,4 @@ Candidates are always notified when an election's status changes. It is up to th
 Testing the package requires certain prerequisites be met
 
 1. All tests require the availablility of a Zookeeper installation. `Election_test.go` requires that Zookeeper be running. The integration tests control Zookeeper so Zookeeper should not be running when executing the integration tests.
-1. The integration tests leverage `github.com.Comcast.goutil`. This package must be installed prior to executing integration tests.
+1. The integration tests leverage `github.com.Comcast.goint`. This package must be installed prior to executing integration tests.
