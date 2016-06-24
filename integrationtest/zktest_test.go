@@ -30,8 +30,8 @@ import (
 
 	"github.com/samuel/go-zookeeper/zk"
 
-	"github.comcast.com/viper-cog/goint"
-	"github.comcast.com/viper-cog/leaderelection"
+	"github.com/Comcast/go-leaderelection"
+	"github.com/Comcast/goint"
 )
 
 const (
@@ -903,7 +903,7 @@ func TestMain(t *testing.T) {
 						Directory: rootDir,
 						Command: func() *exec.Cmd {
 							return exec.Command("go", "build", "-v", "-race",
-								"github.comcast.com/viper-cog/goutil/leaderelection")
+								"github.com/Comcast/go-leaderelection")
 						},
 						Stdout: goint.TailReportOnError,
 						Stderr: goint.TailReportOnError,

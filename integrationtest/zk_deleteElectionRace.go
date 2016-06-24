@@ -27,7 +27,7 @@ import (
 	"strings"
 
 	"github.com/samuel/go-zookeeper/zk"
-	"github.comcast.com/viper-cog/leaderelection"
+	"github.com/Comcast/go-leaderelection"
 )
 
 const numCandidates = 500

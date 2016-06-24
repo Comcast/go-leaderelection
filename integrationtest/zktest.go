@@ -20,7 +20,7 @@ import (
 	"sync"
 	"time"
 
-	"github.comcast.com/viper-cog/goint"
+	"github.com/Comcast/goint"
 )
 
 // ZKTestSetup - test setup
