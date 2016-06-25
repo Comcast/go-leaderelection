@@ -74,7 +74,7 @@ Leader Election (LE) clients will have to import the following packages:
 
     import (
     	"github.com/samuel/go-zookeeper/zk"
-    	"github.comcast.com/viper-cog/leaderelection"
+    	"github.com/Comcast/go-leaderelection"
     )
 
 Leader election clients must provide a ZK connection when creating an election instance. The rationale behind this is to prevent applications that participate in multiple elections from letting the library create multiple ZK connections behind the scenes. This allows the application to optimize the use of ZK connections.
@@ -175,8 +175,11 @@ See the **Monitor election and candidate's role in the election** above.
 ## Query status
 Candidates are always notified when an election's status changes. It is up to the client to cache this status if they need to reference it between status changes.
 
-# Testing the package
-Testing the package requires certain prerequisites be met
+# Prerequisites
 
-1. All tests require the availablility of a Zookeeper installation. `Election_test.go` requires that Zookeeper be running. The integration tests control Zookeeper so Zookeeper should not be running when executing the integration tests.
-1. The integration tests leverage `github.com.Comcast.goint`. This package must be installed prior to executing integration tests.
+1. `go-leaderelection` uses `github.com/samuel/go-zookeeper/zk`.
+1. All tests require the availablility of a Zookeeper installation. `zkServer.sh` must be in the path. `Election_test.go` requires that Zookeeper be running. The integration tests control Zookeeper so Zookeeper should not be running when executing the integration tests.
+
+Testing the package has additional prerequisites:
+
+1. The integration tests leverage `github.com/Comcast/goint`. This package must be installed prior to executing integration tests.
