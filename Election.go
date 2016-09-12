@@ -141,6 +141,7 @@ type (
 		// goroutine should exit.
 		zkConn           *zk.Conn // This is the Zookeeper connection provided by the client.
 		ElectionResource string   // This is the Zookeeper node that represents the overall election. Candidates
+		clientName       string   // Client that created the election for instrumentation purposes.
 		// will be children of this node.
 		candidateID string // This is the ID assigned by Zookeeper that is associated with the ephemeral node
 		// representing a candidate
@@ -194,7 +195,7 @@ func (status Status) String() string {
 // It will return either a non-nil Election instance and a nil error, or a nil
 // Election and a non-nil error.
 //
-func NewElection(zkConn *zk.Conn, electionResource string) (*Election, error) {
+func NewElection(zkConn *zk.Conn, electionResource string, clientName string) (*Election, error) {
 	if zkConn == nil {
 		return nil, errors.New("zkConn must not be nil")
 	}
@@ -210,6 +211,11 @@ func NewElection(zkConn *zk.Conn, electionResource string) (*Election, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s Error setting watch on DONE node", "NewElection:")
 	}
+
+	if clientName == "" {
+		clientName = "name-not-provided"
+	}
+
 	return &Election{
 		status: make(chan Status, 1),
 		resign: make(chan struct{}),
@@ -222,6 +228,7 @@ func NewElection(zkConn *zk.Conn, electionResource string) (*Election, error) {
 		zkConn:           zkConn,
 		ElectionResource: electionResource,
 		doneChl:          electionDoneChl,
+		clientName:       clientName,
 	}, nil
 }
 
@@ -393,7 +400,7 @@ func makeOffer(le *Election, status *Status) <-chan zk.Event {
 	// TODO: Perhaps this should be changed from le.zkConn.Create(...) to le.zkConn.CreateProtectedEphemeralSequential(...)?
 	// TODO: Needs more research. See the go-zookeeper code at https://github.com/samuel/go-zookeeper/tree/master/zk
 	// TODO: for details.
-	cndtID, err := le.zkConn.Create(strings.Join([]string{le.ElectionResource, "le_"}, "/"), []byte(" "), flags, acl)
+	cndtID, err := le.zkConn.Create(strings.Join([]string{le.ElectionResource, "le_"}, "/"), []byte(le.clientName), flags, acl)
 	if err != nil {
 		status.Err = fmt.Errorf("%s Error <%v> creating candidate node for election <%v>",
 			"makeOffer:", err, le.ElectionResource)
@@ -588,7 +595,7 @@ func watchForFollowerEvents(followingWatchChnl <-chan zk.Event, selfDltWatchChl 
 			}
 		// Election goroutine is signaling this goroutine to exit.
 		case <-stopZKWatch:
-			//			//fmt.Println("watchForFollowerEvents: watchForFollowerEvents: stopZKWatch msg received.")
+			//fmt.Println("watchForFollowerEvents: watchForFollowerEvents: stopZKWatch msg received.")
 			return
 		}
 	}
@@ -658,7 +665,7 @@ func DeleteElection(zkConn *zk.Conn, electionResource string) error {
 			//fmt.Println("DeleteElection: Despite an error, the Election node was deleted (or otherwise doesn't exist."+
 			//	"The actual error received is ", err)
 		} else {
-			//return fmt.Errorf("%s Unexpected error received from leaderelection.DeleteElection: %v", "DeleteElection", err)
+			return fmt.Errorf("%s Unexpected error received from leaderelection.DeleteElection: %v", "DeleteElection", err)
 		}
 	} else if err != nil {
 		//fmt.Println("DeleteElection: An expected error, ('node does not exist'), received "+

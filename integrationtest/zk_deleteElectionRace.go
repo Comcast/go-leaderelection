@@ -26,8 +26,8 @@ import (
 
 	"strings"
 
-	"github.com/samuel/go-zookeeper/zk"
 	"github.com/Comcast/go-leaderelection"
+	"github.com/samuel/go-zookeeper/zk"
 )
 
 const numCandidates = 500
@@ -161,7 +161,7 @@ func NewZKDeleteElectionRaceTest(setup ZKTestSetup) *ZKTest {
 
 func runCandidate(errorLogger *log.Logger, zkConn *zk.Conn, electionPath string, wg *sync.WaitGroup, errChl chan<- error) {
 
-	leaderElector, err := leaderelection.NewElection(zkConn, electionPath)
+	leaderElector, err := leaderelection.NewElection(zkConn, electionPath, "myHostName")
 	if err != nil {
 		wg.Done()
 		errChl <- fmt.Errorf("%s Error creating a new election, abandoning. Error: <%v>", "zkDeleteElectionRaceTest", err)

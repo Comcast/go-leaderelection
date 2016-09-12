@@ -26,8 +26,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/samuel/go-zookeeper/zk"
 	"github.com/Comcast/go-leaderelection"
+	"github.com/samuel/go-zookeeper/zk"
 )
 
 // zkFollowerResignationTest is the struct that controls the test.
@@ -90,7 +90,7 @@ func (test *zkFollowerResignationTest) StepFunc(idx int) error {
 	case 0: // Create the Election
 		test.info.Printf("Step %d: Create Election.", idx)
 
-		leaderElector, err := leaderelection.NewElection(test.zkConn, test.testSetup.electionNode)
+		leaderElector, err := leaderelection.NewElection(test.zkConn, test.testSetup.electionNode, "myhostname")
 		test.leaderElector = leaderElector
 
 		if err != nil {
@@ -100,7 +100,7 @@ func (test *zkFollowerResignationTest) StepFunc(idx int) error {
 		}
 
 		test.follower1Elector, err = leaderelection.NewElection(test.zkConn,
-			test.testSetup.electionNode)
+			test.testSetup.electionNode, "myhostname")
 
 		if err != nil {
 			test.error.Printf("frTest: Error in NewElection (follower1) (%s): %v",
@@ -109,7 +109,7 @@ func (test *zkFollowerResignationTest) StepFunc(idx int) error {
 		}
 
 		test.follower2Elector, err = leaderelection.NewElection(test.zkConn,
-			test.testSetup.electionNode)
+			test.testSetup.electionNode, "myhostname")
 
 		if err != nil {
 			test.error.Printf("frTest: Error in NewElection (follower2) (%s): %v",

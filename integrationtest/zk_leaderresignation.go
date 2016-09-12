@@ -23,8 +23,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/samuel/go-zookeeper/zk"
 	"github.com/Comcast/go-leaderelection"
+	"github.com/samuel/go-zookeeper/zk"
 )
 
 // zkLeaderResignationTest is the struct that controls the test.
@@ -85,7 +85,7 @@ func (test *zkLeaderResignationTest) StepFunc(idx int) error {
 	case 0: // Create the Election
 		test.info.Printf("Step %d: Create Election.", idx)
 
-		elector, err := leaderelection.NewElection(test.zkConn, test.testSetup.electionNode)
+		elector, err := leaderelection.NewElection(test.zkConn, test.testSetup.electionNode, "myhostname")
 		test.leaderElecInst = elector
 
 		if err != nil {
@@ -95,7 +95,7 @@ func (test *zkLeaderResignationTest) StepFunc(idx int) error {
 		}
 
 		test.followerElecInst, err = leaderelection.NewElection(test.zkConn,
-			test.testSetup.electionNode)
+			test.testSetup.electionNode, "myhostname")
 
 		if err != nil {
 			test.error.Printf("ldrResignationTest: Error in NewElection (follower) (%s): %v",
@@ -187,7 +187,7 @@ func (test *zkLeaderResignationTest) StepFunc(idx int) error {
 	case 4: // Check if when leader (or some other client) comes back, he is simply a follower
 		var err error
 		test.info.Printf("Step %d: Test new follower joining", idx)
-		test.follower2Elector, err = leaderelection.NewElection(test.zkConn, test.testSetup.electionNode)
+		test.follower2Elector, err = leaderelection.NewElection(test.zkConn, test.testSetup.electionNode, "myHostName")
 		if err != nil {
 			test.error.Printf("ldrResignationTest: Error in NewElection (leader) (%s): %v",
 				test.testSetup.electionNode, err)

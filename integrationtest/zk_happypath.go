@@ -25,8 +25,8 @@ import (
 
 	"os"
 
-	"github.com/samuel/go-zookeeper/zk"
 	"github.com/Comcast/go-leaderelection"
+	"github.com/samuel/go-zookeeper/zk"
 )
 
 // zkHappyPathTest is the struct that controls the test.
@@ -83,7 +83,7 @@ func (test *zkHappyPathTest) StepFunc(idx int) error {
 	case 0: // Create the Election
 		test.info.Printf("Step %d: Create Election.", idx)
 
-		elector, err := leaderelection.NewElection(test.zkConn, test.testSetup.electionNode)
+		elector, err := leaderelection.NewElection(test.zkConn, test.testSetup.electionNode, "myhostname")
 		test.leaderElector = elector
 
 		if err != nil {

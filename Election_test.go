@@ -1,19 +1,3 @@
-// Copyright 2016 Comcast Cable Communications Management, LLC
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
-// End Copyright
-
 package leaderelection
 
 /**
@@ -69,7 +53,7 @@ type ElectionResponse struct {
 
 func TestNilZKConn(t *testing.T) {
 	t.Log("Given a nir Zookeeper connection")
-	_, err := NewElection(nil, "someResourceString")
+	_, err := NewElection(nil, "someResourceString", "myhostname")
 	if err == nil {
 		t.Fatal("\t\tShould get a non-nil error returned")
 	}
@@ -81,7 +65,7 @@ func TestMissingElectionResource(t *testing.T) {
 	t.Log("Given a non-existent election resource")
 
 	conn, _ := connect("127.0.0.1:2181")
-	_, err := NewElection(conn, "someResourceString")
+	_, err := NewElection(conn, "someResourceString", "myhostname")
 	if err == nil {
 		t.Fatal("\tExpected the request to fail and it didn't")
 	}
@@ -93,6 +77,8 @@ func BenchmarkTestLeaderElectionAndRecovery(b *testing.B) {
 		respCh := make(chan ElectionResponse)
 		connFailCh := make(chan bool)
 		conn, connEvtChan := connect("127.0.0.1:2181")
+
+		//	clog.EnableDebug()
 
 		go func() {
 			for {
@@ -132,6 +118,8 @@ func TestLeaderElectionAndRecovery(t *testing.T) {
 	respCh := make(chan ElectionResponse)
 	connFailCh := make(chan bool)
 	conn, connEvtChan := connect("127.0.0.1:2181")
+
+	//	clog.EnableDebug()
 
 	go func() {
 		for {
@@ -215,7 +203,7 @@ func must(err error) {
 func runCandidate(zkConn *zk.Conn, electionPath string, wg *sync.WaitGroup,
 	respCh chan ElectionResponse, waitFor uint, connFailCh chan bool) {
 
-	leaderElector, err := NewElection(zkConn, "/election")
+	leaderElector, err := NewElection(zkConn, "/election", "myhostname")
 	if err != nil {
 		fmt.Println("Error creating a new election: <", err, ">. Abandoning election.")
 		wg.Done()

@@ -46,6 +46,13 @@ var ZKHappyPathTestSetup = ZKTestSetup{
 	electionNode: "/happypathelection",
 }
 
+// Test setup for the ZK Host Name test case
+var ZKClientNameTestSetup = ZKTestSetup{
+	zkURL:        zkServerAddr,
+	heartBeat:    heartBeatTimeout,
+	electionNode: "/hostNameTest",
+}
+
 // Test setup for the ZK Leader Crash test case
 var ZKLCTestSetup = ZKTestSetup{
 	zkURL:        zkServerAddr,
@@ -365,7 +372,7 @@ func addZKAbsenceTestCase(rootDir string) {
 				Name: "Test New Election API when ZK Absent",
 				Func: func(w *goint.GoFunc) {
 					// Call New election
-					elector, err := leaderelection.NewElection(zkConn, ZKAbsenceTestSetup.electionNode)
+					elector, err := leaderelection.NewElection(zkConn, ZKAbsenceTestSetup.electionNode, "myhostname")
 					if err == nil {
 						Error.Printf("zkAbsenceTest: Expected Error from NewElection(%s). But it worked!",
 							ZKAbsenceTestSetup.electionNode)
@@ -429,7 +436,7 @@ func addZKAbsencePart2TestCase(rootDir string) {
 
 					// Call New election API
 					elector, err = leaderelection.NewElection(zkConn,
-						ZKAbsencePart2TestSetup.electionNode)
+						ZKAbsencePart2TestSetup.electionNode, "myhostname")
 					if err != nil {
 						Error.Printf("zkAbsencePart2Test: Got error for NewElection(%s)!",
 							ZKAbsencePart2TestSetup.electionNode)
@@ -519,7 +526,7 @@ func addZKAbsencePart3TestCase(rootDir string) {
 
 					// Create new elector for leader
 					leaderElector, err = leaderelection.NewElection(zkConn,
-						ZKAbsencePart3TestSetup.electionNode)
+						ZKAbsencePart3TestSetup.electionNode, "myhostname")
 					if err != nil {
 						Error.Printf("zkAbsencePart3Test: Got error for NewElection(%s)!",
 							ZKAbsencePart3TestSetup.electionNode)
@@ -540,7 +547,7 @@ func addZKAbsencePart3TestCase(rootDir string) {
 
 					// Create new elector for follower
 					followerElector, err = leaderelection.NewElection(zkConn,
-						ZKAbsencePart3TestSetup.electionNode)
+						ZKAbsencePart3TestSetup.electionNode, "myhostname")
 					if err != nil {
 						Error.Printf("zkAbsencePart3Test: Got error for NewElection(%s)!",
 							ZKAbsencePart3TestSetup.electionNode)
@@ -658,7 +665,7 @@ func addZKElectionNodeDeleteTestCase(rootDir string) {
 				Func: func(w *goint.GoFunc) {
 					// Create New election
 					leaderElector, err = leaderelection.NewElection(zkConn,
-						ZKElectionDeletionTestSetup.electionNode)
+						ZKElectionDeletionTestSetup.electionNode, "myhostname")
 					if err != nil {
 						Error.Printf("ElecNodeDeletionTest: Error creating a New Elector for leader(%s)",
 							ZKElectionDeletionTestSetup.electionNode)
@@ -677,7 +684,7 @@ func addZKElectionNodeDeleteTestCase(rootDir string) {
 
 					// Create New election
 					followerElector, err = leaderelection.NewElection(zkConn,
-						ZKElectionDeletionTestSetup.electionNode)
+						ZKElectionDeletionTestSetup.electionNode, "myhostname")
 					if err != nil {
 						Error.Printf("ElecNodeDeletionTest: Error creating a New Elector for follower (%s)",
 							ZKElectionDeletionTestSetup.electionNode)
@@ -801,6 +808,7 @@ func cleanupElectionNodes(rootDir string) {
 					// Remove the election nodes in Zookeeper; ignore errors since
 					// the node may not exist.
 					zkConn.Delete(ZKHappyPathTestSetup.electionNode, 0)
+					zkConn.Delete(ZKClientNameTestSetup.electionNode, 0)
 					zkConn.Delete(ZKLCTestSetup.electionNode, 0)
 					zkConn.Delete(ZKLRTestSetup.electionNode, 0)
 					zkConn.Delete(ZKFRTestSetup.electionNode, 0)
@@ -845,7 +853,9 @@ func createTests(rootDir string) {
 	zkHappyPathTest := NewZKHappyPathTest(ZKHappyPathTestSetup)
 	addTest(zkHappyPathTest, rootDir)
 
-	// Add the crash test case to be run next
+	// Add the host name test
+	zkClientNameTest := NewZKClientNameTest(ZKClientNameTestSetup)
+	addTest(zkClientNameTest, rootDir) // Add the crash test case to be run next
 	addLeaderCrashTestCase(rootDir)
 
 	// Add the ZK absence test case - Test NewElection API when ZK is down
