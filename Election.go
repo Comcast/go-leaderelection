@@ -14,8 +14,8 @@
 //
 // End Copyright
 
-// Package leaderelection implements a leader election protocol for Zookeeper. Here are the main steps to implement a leader election
-// using this package.
+// Package leaderelection implements a leader election protocol in Go using the Zookeeper leader election recipe.
+// The main steps to implement a leader election as as follows:
 //
 // Initialize an election
 //
