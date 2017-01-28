@@ -1,4 +1,4 @@
-# Leader Election
+# GoLea
 GoLea provides the capability for a set of distributed processes to compete for leadership for a shared resource. It is implemented using Zookeeper for the underlying support. For a general description of leader election, see the [wikipedia page describing leader election](https://en.wikipedia.org/wiki/Leader_election).
 
 # Terms
