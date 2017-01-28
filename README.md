@@ -1,5 +1,5 @@
 # Leader Election
-`leaderelection` provides the capability for a set of distributed processes to compete for leadership for a shared resource. It is implemented using Zookeeper for the underlying support. For a general description of leader election, see the [wikipedia page describing leader election](https://en.wikipedia.org/wiki/Leader_election).
+GoLea provides the capability for a set of distributed processes to compete for leadership for a shared resource. It is implemented using Zookeeper for the underlying support. For a general description of leader election, see the [wikipedia page describing leader election](https://en.wikipedia.org/wiki/Leader_election).
 
 # Terms
 <table border="1">
@@ -120,6 +120,9 @@ Finally, an election can be unilaterally ended by any actor in the application. 
 
 Given that leadership election is an asynchronous process clients should start the election as a goroutine as shown below. All events pertaining to the status of an election are communicated via channels. So the typical pattern is for a client to monitor the election status in a `for/select` loop as shown below.
 
+    // Each candidation should register interest in participating for an election
+    candidate, err := NewElection(zkConn, "/election", "myhostname")
+    ...
     // Each candidate should begin their participation in the
     // by starting a goroutine.
     go candidate.ElectLeader()
