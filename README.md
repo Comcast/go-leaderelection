@@ -1,4 +1,5 @@
-# GoLea
+# GoLea ![Goalie](https://cloud.githubusercontent.com/assets/6370793/22409043/e0b28596-e640-11e6-9c7d-368409b4d082.png)
+
 GoLea provides the capability for a set of distributed processes to compete for leadership for a shared resource. It is implemented using Zookeeper for the underlying support. For a general description of leader election, see the [wikipedia page describing leader election](https://en.wikipedia.org/wiki/Leader_election).
 
 # Terms
