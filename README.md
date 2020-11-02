@@ -182,7 +182,7 @@ Candidates are always notified when an election's status changes. It is up to th
 # Prerequisites
 
 1. `go-leaderelection` uses `github.com/samuel/go-zookeeper/zk`.
-1. All tests require the availablility of a Zookeeper installation. `zkServer.sh` must be in the path. `Election_test.go` requires that Zookeeper be running. The integration tests control Zookeeper so Zookeeper should not be running when executing the integration tests.
+1. All tests require the availability of a Zookeeper installation. `zkServer.sh` must be in the path. `Election_test.go` requires that Zookeeper be running. The integration tests control Zookeeper so Zookeeper should not be running when executing the integration tests.
 
 Testing the package has additional prerequisites:
 
