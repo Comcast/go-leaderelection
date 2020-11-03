@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/samuel/go-zookeeper/zk"
+	"github.com/go-zookeeper/zk"
 
 	"golang.org/x/net/context"
 

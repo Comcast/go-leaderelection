@@ -106,7 +106,7 @@ import (
 
 	"time"
 
-	"github.com/samuel/go-zookeeper/zk"
+	"github.com/go-zookeeper/zk"
 )
 
 const (
@@ -247,18 +247,18 @@ func (le *Election) ElectLeader() {
 
 	// Run the initial election. Need to check for resignations or election termination that may have
 	// happened between the time the election was requested and the return of runElection().
-	//fmt.Printf("%s Starting new election for resource <%s>.\n", "ElectLeader:", le.ElectionResource)
+	// fmt.Printf("%s Starting new election for resource <%s>.\n", "ElectLeader:", le.ElectionResource)
 	status := runElection(le)
 
 	le.status <- status // le.status channel is buffered so this is guaranteed not to block
-	//fmt.Printf("ElectLeader:"+"Sent client status message: <", status, ">.\n")
+	// fmt.Printf("ElectLeader:"+"Sent client status message: <", status, ">.\n")
 	for {
 		select {
 		case err := <-le.triggerElection:
 			// ZK delete events will trigger a re-election if not previously cancelled (resign or end)
 			if err != nil {
 				status.Err = err
-				//fmt.Printf("ElectLeader:"+" Error returned from ZK watch func(s), <", status, ">. \n"+
+				// fmt.Printf("ElectLeader:"+" Error returned from ZK watch func(s), <", status, ">. \n"+
 				//	"Sending Status to client")
 			} else {
 				determineLeader(le, &status)
@@ -312,7 +312,7 @@ func (le *Election) EndElection() {
 // that an error is returned the client will need to perform any processing appropriate to
 // the failure.
 func (le *Election) Resign() {
-	//fmt.Printf("Resign: Candidate<%s>\n", le.candidateID)
+	// fmt.Printf("Resign: Candidate<%s>\n", le.candidateID)
 	close(le.resign)
 }
 
@@ -340,7 +340,7 @@ func resignElection(le *Election, cleanupOnlyOnce func()) {
 	// -1 in the ZK call below means delete all versions of the node identified by candidateID. Only 1 version is expected.
 	err := le.zkConn.Delete(le.candidateID, -1)
 	if err != nil {
-		//fmt.Println("resignElection:"+"Error deleting ZK node for candidate <", le.candidateID, "> during Resign. Error is ", err)
+		// fmt.Println("resignElection:"+"Error deleting ZK node for candidate <", le.candidateID, "> during Resign. Error is ", err)
 	}
 	le.once.Do(cleanupOnlyOnce)
 	return
@@ -351,7 +351,7 @@ func endElection(le *Election, cleanupOnlyOnce func()) {
 	// when candidates are deleted as part of completing/ending the election. It also ensures that the
 	// associated goroutine exits.
 	close(le.stopZKWatch)
-	//All candidates need to be deleted so no one can assume leadership of a terminated election.
+	// All candidates need to be deleted so no one can assume leadership of a terminated election.
 	deleteAllCandidates(le)
 	le.once.Do(cleanupOnlyOnce)
 	return
@@ -368,14 +368,14 @@ func runElection(le *Election) Status {
 	le.zkEvents = zkWatchChl
 	le.candidateID = status.CandidateID
 
-	//fmt.Printf("runElection: "+"ElectLeader: le.candidate.CandidateID:\n", le.candidateID)
+	// fmt.Printf("runElection: "+"ElectLeader: le.candidate.CandidateID:\n", le.candidateID)
 	determineLeader(le, &status)
 	if status.Err != nil {
 		status.Err = fmt.Errorf("%s Unexpected error attempting to determine leader. Error (%v)",
 			"runElection:", status.Err)
 		return status
 	}
-	//fmt.Println("runElection: "+"Election Result: Leader?", status.Role, "; Candidate info:", le.candidateID)
+	// fmt.Println("runElection: "+"Election Result: Leader?", status.Role, "; Candidate info:", le.candidateID)
 
 	return status
 }
@@ -398,7 +398,7 @@ func makeOffer(le *Election, status *Status) <-chan zk.Event {
 
 	// Make offer
 	// TODO: Perhaps this should be changed from le.zkConn.Create(...) to le.zkConn.CreateProtectedEphemeralSequential(...)?
-	// TODO: Needs more research. See the go-zookeeper code at https://github.com/samuel/go-zookeeper/tree/master/zk
+	// TODO: Needs more research. See the go-zookeeper code at https://github.com/go-zookeeper/tree/master/zk
 	// TODO: for details.
 	cndtID, err := le.zkConn.Create(strings.Join([]string{le.ElectionResource, "le_"}, "/"), []byte(le.clientName), flags, acl)
 	if err != nil {
@@ -422,7 +422,7 @@ func makeOffer(le *Election, status *Status) <-chan zk.Event {
 		return nil
 	}
 
-	//fmt.Printf("makeOffer: le.candidate.CandidateID: %v \n", cndtID)
+	// fmt.Printf("makeOffer: le.candidate.CandidateID: %v \n", cndtID)
 	status.CandidateID = cndtID
 	return watchChl
 }
@@ -436,7 +436,7 @@ func determineLeader(le *Election, status *Status) {
 		return
 	}
 	if len(candidates) == 0 {
-		//fmt.Printf("determineLeader: "+"No children exist in ZK, not even me:%s\n", le.candidateID)
+		// fmt.Printf("determineLeader: "+"No children exist in ZK, not even me:%s\n", le.candidateID)
 		status.Err = fmt.Errorf("%s No Leader candidates exist in ZK. Candidate requesting children is (%v)",
 			"determineLeader:", status.CandidateID)
 		return
@@ -472,7 +472,7 @@ func amILeader(status *Status, candidates []string, le *Election) (bool, string)
 	pathNodes := strings.Split(status.CandidateID, "/")
 	lenPath := len(pathNodes)
 	shortCndtID := pathNodes[lenPath-1]
-	//fmt.Printf("amILeader: Election ID: %s\n", shortCndtID)
+	// fmt.Printf("amILeader: Election ID: %s\n", shortCndtID)
 
 	sort.Strings(candidates)
 	if strings.EqualFold(shortCndtID, candidates[0]) {
@@ -507,7 +507,7 @@ func followAnotherCandidate(le *Election, shortCndtID string, status *Status, ca
 		return
 	}
 	if !exists {
-		//fmt.Printf("followAnotherCandidate: Watched candidate %s doesn't exist in ZK\n", watchedNode)
+		// fmt.Printf("followAnotherCandidate: Watched candidate %s doesn't exist in ZK\n", watchedNode)
 
 		// It's possible that the watched candidate was deleted just prior to the existence test, e.g., via Resign().
 		// It's also possible that the election is in the process of being deleted and this is what resulted in the
@@ -516,8 +516,8 @@ func followAnotherCandidate(le *Election, shortCndtID string, status *Status, ca
 		le.triggerElection <- nil
 	}
 
-	//fmt.Printf("followAnotherCandidate: Candidate: %s is watching candidate: %s\n", le.candidateID, watchedNode)
-	//fmt.Printf("followAnotherCandidate: Candidate %s will watch on channel %v\n", le.candidateID, zkFollowingWatchChl)
+	// fmt.Printf("followAnotherCandidate: Candidate: %s is watching candidate: %s\n", le.candidateID, watchedNode)
+	// fmt.Printf("followAnotherCandidate: Candidate %s will watch on channel %v\n", le.candidateID, zkFollowingWatchChl)
 
 	status.WasFollowing = status.NowFollowing
 	status.NowFollowing = watchedNode
@@ -533,7 +533,7 @@ func watchForLeaderDeleteEvents(ldrDltWatchChl <-chan zk.Event, notifyChl chan<-
 	for {
 		select {
 		case doneWatchEvent := <-electionCompleted:
-			//fmt.Printf("watchForLeaderDeleteEvents: Candidate %s received notification that the election is over. Watch event is %v\n",
+			// fmt.Printf("watchForLeaderDeleteEvents: Candidate %s received notification that the election is over. Watch event is %v\n",
 			// candidateID, doneWatchEvent)
 			notifyChl <- fmt.Errorf("%s - %s - Election 'DONE' node created or deleted <%v>, the election is over"+
 				" for candidate <%s>.", "watchForLeaderDeleteEvents", ElectionCompletedNotify, doneWatchEvent, candidateID)
@@ -543,18 +543,18 @@ func watchForLeaderDeleteEvents(ldrDltWatchChl <-chan zk.Event, notifyChl chan<-
 		// stop working and exit.
 		case delWatchEvent := <-ldrDltWatchChl:
 			if delWatchEvent.Type == zk.EventNodeDeleted {
-				//fmt.Println("watchForLeaderDeleteEvents: Leader ", candidateID, " was deleted, notification message is <",
+				// fmt.Println("watchForLeaderDeleteEvents: Leader ", candidateID, " was deleted, notification message is <",
 				//	delWatchEvent, ">")
 				err := fmt.Errorf("%s Leader (%v) has been deleted", "watchForLeaderDeleteEvents", candidateID)
 				notifyChl <- err
-				//fmt.Println("watchForLeaderDeleteEvents: Done with Candidate deletion for", candidateID)
+				// fmt.Println("watchForLeaderDeleteEvents: Done with Candidate deletion for", candidateID)
 				return
 			}
 			return
 
 		// Election goroutine is signaling this goroutine to exit.
 		case <-stopZKWatch:
-			//fmt.Println("watchForLeaderDeleteEvents: watchForLeaderDeleteEvents: stopZKWatch msg received.")
+			// fmt.Println("watchForLeaderDeleteEvents: watchForLeaderDeleteEvents: stopZKWatch msg received.")
 			return
 		}
 	}
@@ -566,7 +566,7 @@ func watchForFollowerEvents(followingWatchChnl <-chan zk.Event, selfDltWatchChl 
 	for {
 		select {
 		case doneWatchEvent := <-electionCompleted:
-			//fmt.Println("watchForFollowerEvents: Candidate ", candidateID, " received notification that the election"+
+			// fmt.Println("watchForFollowerEvents: Candidate ", candidateID, " received notification that the election"+
 			//	" is over. Watch event <", doneWatchEvent, ">")
 			notifyChl <- fmt.Errorf("%s - %s - Election 'DONE' node created or deleted <%v>, the election is over"+
 				" for candidate <%s>.", "watchForFollowerEvents", ElectionCompletedNotify, doneWatchEvent, candidateID)
@@ -576,7 +576,7 @@ func watchForFollowerEvents(followingWatchChnl <-chan zk.Event, selfDltWatchChl 
 		// if I'm leader or who I'm otherwise following.
 		case watchEvt := <-followingWatchChnl:
 			if watchEvt.Type == zk.EventNodeDeleted {
-				//fmt.Println("watchForFollowerEvents: Candidate ", candidateID, " received a watch event, starting leader "+
+				// fmt.Println("watchForFollowerEvents: Candidate ", candidateID, " received a watch event, starting leader "+
 				//	"re-election process. Watch event is <", watchEvt, ">")
 				notifyChl <- nil
 				return
@@ -587,15 +587,15 @@ func watchForFollowerEvents(followingWatchChnl <-chan zk.Event, selfDltWatchChl 
 			if delWatchEvent.Type == zk.EventNodeDeleted {
 				err := fmt.Errorf("%s - %s - Candidate (%s) (i.e., me) has been deleted", "watchForFollowerEvents",
 					ElectionSelfDltNotify, candidateID)
-				//fmt.Println("watchForFollowerEvents: Candidate ", candidateID, " was deleted, notification message is <",
+				// fmt.Println("watchForFollowerEvents: Candidate ", candidateID, " was deleted, notification message is <",
 				//	delWatchEvent, ">. Returning error <", err, ">.")
 				notifyChl <- err
-				//fmt.Println("watchForFollowerEvents: Done with Candidate deletion for ", candidateID)
+				// fmt.Println("watchForFollowerEvents: Done with Candidate deletion for ", candidateID)
 				return
 			}
 		// Election goroutine is signaling this goroutine to exit.
 		case <-stopZKWatch:
-			//fmt.Println("watchForFollowerEvents: watchForFollowerEvents: stopZKWatch msg received.")
+			// fmt.Println("watchForFollowerEvents: watchForFollowerEvents: stopZKWatch msg received.")
 			return
 		}
 	}
@@ -615,8 +615,8 @@ func findWhoToFollow(candidates []string, shortCndtID string, le *Election) (str
 			"findWhoToFollow", shortCndtID, ElectionCompletedNotify)
 	}
 
-	//fmt.Println("findWhoToFollow: Candidate <", shortCndtID, "> found (or not) at index <", idx, ">.")
-	//fmt.Println("findWhoToFollow: My ID is <", shortCndtID, ">. Expecting same ID in child list at position <",
+	// fmt.Println("findWhoToFollow: Candidate <", shortCndtID, "> found (or not) at index <", idx, ">.")
+	// fmt.Println("findWhoToFollow: My ID is <", shortCndtID, ">. Expecting same ID in child list at position <",
 	//	idx, ">. Child ID <", candidates[idx], "> was found at that position.")
 
 	if !strings.EqualFold(candidates[idx], shortCndtID) {
@@ -637,13 +637,13 @@ func cleanup(le *Election) {
 
 func deleteAllCandidates(le *Election) {
 	doneNodePath := strings.Join([]string{le.ElectionResource, electionOver}, "/")
-	//TODO: Return error?
+	// TODO: Return error?
 	DeleteCandidates(le.zkConn, le.ElectionResource, doneNodePath)
 }
 
-//DeleteElection removes the election resource passed to NewElection.
+// DeleteElection removes the election resource passed to NewElection.
 func DeleteElection(zkConn *zk.Conn, electionResource string) error {
-	//fmt.Printf("%s: Entered. election resource = <%s>\n", "DeleteElection", electionResource)
+	// fmt.Printf("%s: Entered. election resource = <%s>\n", "DeleteElection", electionResource)
 	doneNodePath, err := addDoneNode(zkConn, electionResource)
 	if err != nil {
 		return fmt.Errorf("%s Error adding 'DONE' node: <%v>", "DeleteElection", err)
@@ -654,7 +654,7 @@ func DeleteElection(zkConn *zk.Conn, electionResource string) error {
 		return fmt.Errorf("%s Error deleting candidates: <%v>", "DeleteElection", err)
 	}
 
-	//fmt.Println("DeleteElection: Deleting root Job node <", electionResource,
+	// fmt.Println("DeleteElection: Deleting root Job node <", electionResource,
 	//	">, including the 'Done' node <", doneNodePath, ">.")
 
 	err = deleteDoneNodeAndElection(zkConn, electionResource, doneNodePath)
@@ -662,13 +662,13 @@ func DeleteElection(zkConn *zk.Conn, electionResource string) error {
 	if err != nil && err != zk.ErrNoNode {
 		exists, _, err2 := zkConn.Exists(electionResource)
 		if err2 == nil && !exists {
-			//fmt.Println("DeleteElection: Despite an error, the Election node was deleted (or otherwise doesn't exist."+
+			// fmt.Println("DeleteElection: Despite an error, the Election node was deleted (or otherwise doesn't exist."+
 			//	"The actual error received is ", err)
 		} else {
 			return fmt.Errorf("%s Unexpected error received from leaderelection.DeleteElection: %v", "DeleteElection", err)
 		}
 	} else if err != nil {
-		//fmt.Println("DeleteElection: An expected error, ('node does not exist'), received "+
+		// fmt.Println("DeleteElection: An expected error, ('node does not exist'), received "+
 		//	"from leaderelection.DeleteElection: <%v>", err)
 	}
 
@@ -682,8 +682,8 @@ func DeleteCandidates(zkConn *zk.Conn, electionName string, doneNodePath string)
 	retries := 1
 	for i := 0; i < retries; i++ {
 		jobWorkers, _, err := zkConn.Children(electionName)
-		//zk.ErrNoNode means that no candidates exist for an election. This is because some other process previously
-		//deleted the candidates or the candidates never existed. Since candidate deletion (other than during resignation)
+		// zk.ErrNoNode means that no candidates exist for an election. This is because some other process previously
+		// deleted the candidates or the candidates never existed. Since candidate deletion (other than during resignation)
 		// is a "best effort" operation, this is OK.
 		if err != nil && err != zk.ErrNoNode {
 			return fmt.Errorf("%s: Received error getting candidates from ZK. Error is <%v>. \n", "DeleteCandidates", err)
@@ -701,7 +701,7 @@ func DeleteCandidates(zkConn *zk.Conn, electionName string, doneNodePath string)
 func runDeleteCandidates(zkConn *zk.Conn, electionName string, candidates []string, doneNodePath string) error {
 	numCndts := len(candidates)
 	if numCndts <= 0 {
-		//fmt.Printf("%s: ZK returned <%d> children, nothing to delete\n", "runDeleteCandidates", numCndts)
+		// fmt.Printf("%s: ZK returned <%d> children, nothing to delete\n", "runDeleteCandidates", numCndts)
 		return nil
 	}
 
@@ -718,7 +718,7 @@ func runDeleteCandidates(zkConn *zk.Conn, electionName string, candidates []stri
 		deleteWorkerRqsts = append(deleteWorkerRqsts, &deleteWorkerOp)
 	}
 
-	//fmt.Printf("%s Deleting <%d> workers for job <%s>\n", "runDeleteCandidates", len(deleteWorkerRqsts), electionName)
+	// fmt.Printf("%s Deleting <%d> workers for job <%s>\n", "runDeleteCandidates", len(deleteWorkerRqsts), electionName)
 	var err error
 	// limit total retries to 1 second elapsed time. This is a hard limit.
 	// Before adding that loop, for unknown reasons, ZK could return no children for a preceeding GetChildren() call,
@@ -742,7 +742,7 @@ func runDeleteCandidates(zkConn *zk.Conn, electionName string, candidates []stri
 				break
 			}
 		}
-		//fmt.Printf("%s Error <%v> deleting %d workers for job %s\n", "runDeleteCandidates", err,
+		// fmt.Printf("%s Error <%v> deleting %d workers for job %s\n", "runDeleteCandidates", err,
 		//	len(deleteWorkerRqsts), electionName)
 		time.Sleep(10 * time.Millisecond)
 	}
@@ -757,15 +757,15 @@ func addDoneNode(zkConn *zk.Conn, electionName string) (string, error) {
 	acl := zk.WorldACL(zk.PermAll)
 	nodePath, err := zkConn.Create(strings.Join([]string{electionName, electionOver}, "/"), []byte("done"),
 		flags, acl)
-	//zk.ErrNoNode means that the election node doesn't exist. This is because some other process previously
-	//deleted it or it never existed. Since election deletion is a "best effort" operation, this is OK.
-	//zk.ErrNodeExists means that the DONE node exists and that another DeleteElection is in progress. This
-	//is also OK.
+	// zk.ErrNoNode means that the election node doesn't exist. This is because some other process previously
+	// deleted it or it never existed. Since election deletion is a "best effort" operation, this is OK.
+	// zk.ErrNodeExists means that the DONE node exists and that another DeleteElection is in progress. This
+	// is also OK.
 	if err != nil && err != zk.ErrNoNode && err != zk.ErrNodeExists {
 		return "", fmt.Errorf("%s Error adding 'ElectionOver` (aka done) node. Error: <%v>", "addDoneNode", err)
 	}
-	//If electionOver node exists, the zkConn.Create(...) above will return "" for nodePath. So it has
-	//to be constructed from the parts.
+	// If electionOver node exists, the zkConn.Create(...) above will return "" for nodePath. So it has
+	// to be constructed from the parts.
 	if err != nil && err == zk.ErrNodeExists {
 		nodePath = strings.Join([]string{electionName, electionOver}, "/")
 	}
@@ -799,7 +799,7 @@ func deleteDoneNodeAndElection(zkConn *zk.Conn, electionName, doneNodePath strin
 			// life is still good, the election was actually deleted in a prior iteration
 			break
 		}
-		//fmt.Printf("%s Error <%v> deleting ZK 'done' <%s> and election <%s> nodes\n",
+		// fmt.Printf("%s Error <%v> deleting ZK 'done' <%s> and election <%s> nodes\n",
 		//	"deleteDoneNodeAndElection", err, doneNodePath, electionName)
 		time.Sleep(10 * time.Millisecond)
 	}
