@@ -27,7 +27,7 @@ import (
 	"time"
 
 	"github.com/Comcast/go-leaderelection"
-	"github.com/samuel/go-zookeeper/zk"
+	"github.com/go-zookeeper/zk"
 )
 
 // zkFollowerResignationTest is the struct that controls the test.

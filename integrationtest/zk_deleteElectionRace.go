@@ -27,7 +27,7 @@ import (
 	"strings"
 
 	"github.com/Comcast/go-leaderelection"
-	"github.com/samuel/go-zookeeper/zk"
+	"github.com/go-zookeeper/zk"
 )
 
 const numCandidates = 500
@@ -59,7 +59,7 @@ func (test *zkDeleteElectionRaceTest) InitFunc() ([]time.Duration, error) {
 
 	test.zkConn = zkConn
 	test.done = make(chan struct{})
-	test.errChl = make(chan error, 10000) //Never block!
+	test.errChl = make(chan error, 10000) // Never block!
 
 	// Create the election node in ZooKeeper
 	_, err = test.zkConn.Create(test.testSetup.electionNode, []byte("data"), 0, zk.WorldACL(zk.PermAll))
@@ -86,8 +86,8 @@ func (test *zkDeleteElectionRaceTest) StepFunc(idx int) error {
 	case 1:
 		test.info.Printf("Step %d: Delete Election", idx)
 		createAndRunCandidates(test) // Create more candidates to stimulate the race condition
-		//The election delete should work with only 1 retry given that the "done" node will prevent
-		//new consumers from being added after the "done" node is created.
+		// The election delete should work with only 1 retry given that the "done" node will prevent
+		// new consumers from being added after the "done" node is created.
 		err := leaderelection.DeleteElection(test.zkConn, test.testSetup.electionNode)
 		if err != nil {
 			return fmt.Errorf("%s Error deleting election! Error: <%v>, Election Node: <%v>",
@@ -97,8 +97,8 @@ func (test *zkDeleteElectionRaceTest) StepFunc(idx int) error {
 	case 2:
 		test.info.Printf("Step %d: Wait for candidates to exit...", idx)
 
-		//TODO: It looks like the candidates are being deleted in the wrong order - i.e., not highest to lowest? Why?
-		//TODO: Is it a problem?
+		// TODO: It looks like the candidates are being deleted in the wrong order - i.e., not highest to lowest? Why?
+		// TODO: Is it a problem?
 		for {
 			select {
 			case err := <-test.errChl:
@@ -192,19 +192,19 @@ func runCandidate(errorLogger *log.Logger, zkConn *zk.Conn, electionPath string,
 			}
 
 			if status.Role == leaderelection.Leader {
-				//Do some work, in this test the leader should still be doing work when the election is deleted.
-				//Otherwise it's an error.
+				// Do some work, in this test the leader should still be doing work when the election is deleted.
+				// Otherwise it's an error.
 				select {
 				case status, ok = <-leaderElector.Status():
 					leaderElector.Resign()
 					wg.Done()
 					return
-				case <-time.After(time.Millisecond * 10000): //Wait long enough to give the test a good chance of deleting the election
+				case <-time.After(time.Millisecond * 10000): // Wait long enough to give the test a good chance of deleting the election
 					errorLogger.Println("Candidate <", status.CandidateID, "> completed it's work before the election was deleted")
 					// There will be one more status message coming from the leaderElector. This is the status
 					// message associated with the client deletion notification which happens when an election
 					// is deleted.
-					//TODO: deleted to avoid blocking receive after added DONE channel watch in watchForFollower
+					// TODO: deleted to avoid blocking receive after added DONE channel watch in watchForFollower
 					<-leaderElector.Status()
 					errChl <- fmt.Errorf("Candidate <%s> completed it's work before the election was deleted", status.CandidateID)
 					leaderElector.Resign()

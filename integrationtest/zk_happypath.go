@@ -26,7 +26,7 @@ import (
 	"os"
 
 	"github.com/Comcast/go-leaderelection"
-	"github.com/samuel/go-zookeeper/zk"
+	"github.com/go-zookeeper/zk"
 )
 
 // zkHappyPathTest is the struct that controls the test.
