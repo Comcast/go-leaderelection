@@ -31,9 +31,9 @@ then
 	 exit 1
 fi
 
-OP="rmr $1"
+OP="deleteall $1"
 
-FOUND=`type -P zkCli.sh`
+FOUND=`which zkCli`
 if [ $? -eq 0 ]; then
 	 echo "Zookeper Client found at $FOUND"
 	 ZKCLI=$FOUND
@@ -41,7 +41,7 @@ if [ $? -eq 0 ]; then
 	 exit $?
 fi
 
-FOUND=`type -P zkcli`
+FOUND=`which zkcli`
 if [ $? -eq 0 ]; then
 	 echo "Zookeper Client found at $FOUND"
 	 ZKCLI=$FOUND

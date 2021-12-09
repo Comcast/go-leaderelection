@@ -268,7 +268,7 @@ func electAndAssert(elector *leaderelection.Election, isExpectedToBeLeader bool)
 	s := <-elector.Status()
 
 	if s.Role != role {
-		return s, fmt.Errorf("Unexpected leadership status %s for candidate %s", s.Role, s.CandidateID)
+		return s, fmt.Errorf("Unexpected leadership status %d for candidate %s", s.Role, s.CandidateID)
 	}
 	return s, nil
 }
