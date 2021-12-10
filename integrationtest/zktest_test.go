@@ -28,7 +28,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/samuel/go-zookeeper/zk"
+	"github.com/go-zookeeper/zk"
 
 	"github.com/Comcast/go-leaderelection"
 	"github.com/Comcast/goint"

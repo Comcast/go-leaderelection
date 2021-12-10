@@ -4,15 +4,12 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"time"
 
-	"github.com/samuel/go-zookeeper/zk"
-
-	"golang.org/x/net/context"
-
-	"github.comcast.com/viper-cog/clog"
-	"github.comcast.com/viper-cog/goutil/leaderelection"
+	"github.com/Comcast/go-leaderelection"
+	"github.com/go-zookeeper/zk"
 )
 
 const (
@@ -33,8 +30,6 @@ func main() {
 		os.Exit(-1)
 	}
 
-	ctx := context.Background()
-
 	switch os.Args[1] {
 	case "leader":
 		expectToBeLeader = true
@@ -48,38 +43,37 @@ func main() {
 	zkConn, _, err := zk.Connect([]string{zkServerAddr}, heartBeatTimeout)
 
 	if err != nil {
-		clog.Errorf(clog.FuncStr()+"zkLeaderCrashTest: Error in zk.Connect (%s): %v",
+		log.Fatalf("zkLeaderCrashTest: Error in zk.Connect (%s): %v",
 			zkServerAddr, err)
-		os.Exit(-1)
 	}
 
 	currElection, err := leaderelection.NewElection(zkConn, electionNode, "myhostname")
 
 	if err != nil {
-		clog.Errorf(clog.FuncStr()+"zkLeaderCrashTest: Error in NewElection (%s): %v",
+		log.Fatalf("zkLeaderCrashTest: Error in NewElection (%s): %v",
 			electionNode, err)
 		os.Exit(-1)
 	}
 
 	done := make(chan struct{})
 	go func() {
-		currElection.ElectLeader(ctx)
+		currElection.ElectLeader()
 		done <- struct{}{}
 	}()
 	status := <-currElection.Status()
 	if status.Err != nil {
-		clog.Errorf(clog.FuncStr()+"zkLeaderCrashTest: Error in ElectLeader: %v", err)
+		log.Fatalf("zkLeaderCrashTest: Error in ElectLeader: %v", err)
 		os.Exit(-1)
 	}
 
 	if expectToBeLeader {
 		if status.Role != leaderelection.Leader {
-			clog.Errorf(clog.FuncStr() + "zkLeaderCrashTest: Expected to be leader but isn't")
+			log.Fatalf("zkLeaderCrashTest: Expected to be leader but isn't")
 			os.Exit(-1)
 		}
 	} else {
 		if status.Role != leaderelection.Follower {
-			clog.Errorf(clog.FuncStr() + "zkLeaderCrashTest: Expected to be follower but isn't")
+			log.Fatalf("zkLeaderCrashTest: Expected to be follower but isn't")
 			os.Exit(-1)
 		}
 	}
@@ -88,15 +82,13 @@ func main() {
 	for count := 0; count < 6; count++ {
 		time.Sleep(1 * time.Second)
 		if expectToBeLeader {
-			fmt.Println("leader: Working...")
-			clog.Infof(clog.FuncStr() + "leader: Working...")
+			log.Printf("main() - leader: Working...")
 		} else {
 
-			fmt.Println("follower: Waiting to become the leader...")
-			clog.Infof(clog.FuncStr() + "follower: Waiting to become the leader...")
+			log.Println("main() - follower: Waiting to become the leader...")
 			status := <-currElection.Status()
 			if status.Role != leaderelection.Leader {
-				clog.Errorf(clog.FuncStr()+"follower: Didn't become leader as expected! Got: %v",
+				log.Fatalf("follower: Didn't become leader as expected! Got: %v",
 					status)
 				os.Exit(-1)
 			}
@@ -104,7 +96,7 @@ func main() {
 			time.Sleep(1 * time.Second)
 
 			// Resign from the election
-			currElection.Resign(ctx)
+			currElection.Resign()
 			<-done
 			// This is the only time we return a success
 			os.Exit(0)

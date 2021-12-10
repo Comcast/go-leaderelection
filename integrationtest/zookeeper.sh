@@ -40,7 +40,7 @@ case $1 in
 esac
 
 
-FOUND=`type -P zkServer.sh`
+FOUND=`which zkServer`
 if [ $? -eq 0 ]; then
 	 echo "Zookeper found at $FOUND"
 	 ZKSERVER=$FOUND
@@ -48,7 +48,7 @@ if [ $? -eq 0 ]; then
 	 exit $?
 fi
 
-FOUND=`type -P zkServer`
+FOUND=`which zkserver`
 if [ $? -eq 0 ]; then
 	 echo "Zookeper found at $FOUND"
 	 ZKSERVER=$FOUND

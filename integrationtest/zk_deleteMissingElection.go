@@ -24,8 +24,8 @@ import (
 
 	"os"
 
-	"github.com/samuel/go-zookeeper/zk"
 	"github.com/Comcast/go-leaderelection"
+	"github.com/go-zookeeper/zk"
 )
 
 type zkDeleteMissingElectionTest struct {
