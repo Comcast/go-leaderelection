@@ -1,4 +1,4 @@
-module github.com/youngkin/go-leaderelection
+module github.com/Comcast/go-leaderelection
 
 go 1.15
 
